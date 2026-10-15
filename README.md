@@ -44,3 +44,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 Python 3.10 or later. Each script's docstring says what it checks and labels its sources: [Lit] for the
 literature, [Ours] for new arguments.
+
+## License
+
+MIT; see `LICENSE`.
