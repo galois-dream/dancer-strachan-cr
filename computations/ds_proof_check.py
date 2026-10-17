@@ -6,9 +6,12 @@ Symbolic part checks:
   (1) dr/dtau = -2 r (r - 1)            (so r = 1/(1 - e^{-2 tau}))
   (2) dm/dtau = m (1 + s)
   (3) ds/dtau = 2 m (r + s) - 2 s (2 r - 1 + s)
-  (4) sigma = 2s - m obeys  dsigma/dtau = m(1+s) - 2(2r-1+s) sigma
+  (4) sigma = 2s - m (delta in the note) obeys  dsigma/dtau = m(1+s) - 2(2r-1+s) sigma
   (5) rho = m - s obeys     drho/dtau  = (2r-1+s) m - 2(2r-1+s) rho
   (6) d ln(ac)/dtau = 1 + a^2
+  (7) d(2m - 3s)/dtau = 2m(r - 1) on s = 2m/3
+  (8) (F2): eigenvalues -2q^2, 0, 2q^2 at (q,0,q) in (a^2,b^2,c^2); unstable eigenvector (1/2+q^2/4, 1, 1/2+3q^2/4)
+      (added 2026-10-16 19:42 CEST, corrected from a guessed 19:45)
 Numeric part checks, along computed unstable curves:
   m/2 < s < m (i.e. 1 + b^2/2 < c^2/a^2 < 1 + b^2),  ln(1+3/(2q^2)) <= T(q) <= ln(1+2/q^2),  T decreasing in q.
 Run: .venv/bin/python computations/ds_proof_check.py
@@ -41,6 +44,15 @@ checks = {
 # (7) at s = 2m/3 (i.e. c^2 = a^2 + 2a^2 b^2/3), d/dtau(2m - 3s) = 2m(r - 1) > 0, so s < 2m/3 persists
 boundary7 = sp.simplify((ddtau(2 * m - 3 * s) - 2 * m * (r - 1)).subs(c, sp.sqrt(a**2 + 2 * a**2 * b**2 / 3)))
 checks["(7) d(2m-3s)/dtau - 2m(r-1) on s=2m/3"] = boundary7
+
+# (8) (F2): in u=a^2, v=b^2, w=c^2 the linearization at (q^2, 0, q^2) has eigenvalues -2q^2, 0, 2q^2,
+#     and the unstable eigenvector is (1/2 + q^2/4, 1, 1/2 + 3q^2/4), so s = (c^2 - a^2)/b^2 -> q^2/2.
+u, v, w, qq = sp.symbols("u v w q", positive=True)
+F = sp.Matrix([u * (v + w - u), v * (w + u - v), w * (u + v - w + 2 * u * v)])
+J = F.jacobian([u, v, w]).subs({u: qq**2, v: 0, w: qq**2})
+eig_unstable = sp.Matrix([sp.Rational(1, 2) + qq**2 / 4, 1, sp.Rational(1, 2) + 3 * qq**2 / 4])
+checks["(8a) eigenvalues at (q^2,0,q^2) minus {-2q^2, 0, 2q^2}"] = sp.Poly(J.charpoly().as_expr() - sp.expand(sp.Symbol("lambda") * (sp.Symbol("lambda") ** 2 - 4 * qq**4)), sp.Symbol("lambda")).as_expr()
+checks["(8b) J e - 2q^2 e for e = (1/2+q^2/4, 1, 1/2+3q^2/4)"] = sp.simplify((J * eig_unstable - 2 * qq**2 * eig_unstable).norm())
 
 if __name__ == "__main__":
     print("Symbolic identities (each should simplify to 0):")
